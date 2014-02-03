@@ -24,6 +24,7 @@
             <option value="5">太</option>
         </select>
         <input type="button" id="erase" value="消去">
+        <input type="button" id="posting" value="投稿">
     </p>
     <canvas width="400" height="200" id="mycanvas">
         Canvasに対応したブラウザを用意してください。
@@ -87,6 +88,27 @@
             $('#erase').click(function(){
                 if(!confirm('本当に消去しますか?')) return; 
                 ctx.clearRect(0,0,canvas.width, canvas.height);
+            });
+            
+            $('#posting').click(function(){
+                canvas = $('#mycanvas')[0].toDataURL();
+                $.ajax({
+                    type: 'POST',
+                    url: 'image-accept.php',
+                    data: {
+                        acceptImage: canvas
+                    },
+                    success:function(data, dataType){
+                        console.log("succcess");
+                        console.log(data);        
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown){
+                        console.log("error");
+                        console.log(XMLHttpRequest);
+                        console.log(textStatus);
+                    }
+                    
+                });
             });
         });
     </script>
