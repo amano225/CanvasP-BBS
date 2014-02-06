@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>Doodle</title>
+    <title>canvasを使ったお絵描き投稿システム</title>
     <style>
         #mycanvas{
             border: 10px solid #999;
@@ -29,6 +29,10 @@
     <canvas width="400" height="200" id="mycanvas">
         Canvasに対応したブラウザを用意してください。
     </canvas>
+    <div>
+        <p>最近投稿された画像</p>
+        <img src="test.png" alt="">
+    </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
         $(function(){
@@ -37,17 +41,31 @@
             var ctx = canvas.getContext('2d');
             
             var startX, startY, x, y;
+            var thisX, thisY;
             var borderWidth = 10;
             var isDrawing = false;
-            $('#mycanvas').mousedown(function(e){
-                startX = e.pageX - $(this).offset().left - borderWidth;
-                startY = e.pageY - $(this).offset().top - borderWidth;
+            $('#mycanvas').on('touchstart mousedown', function(e){
+                //console.log(e);
+                //console.log(e.preventDefault);
+                //console.log("touchstart mousedown");
+                thisX = e.pageX || e.originalEvent.changedTouches[0].pageX;
+                thisY = e.pageY || e.originalEvent.changedTouches[0].pageY;
+                //console.log("thisX:" + thisX + ",thisY:" + thisY);
+                
+                startX = thisX - $(this).offset().left - borderWidth;
+                startY = thisY - $(this).offset().top - borderWidth;
                 isDrawing = true;
+                
+                //console.log("X:" + startX + ",Y:" + startY);
+                
+                e.preventDefault();
             })
-            .mousemove(function(e){
+            .on('touchmove mousemove',function(e){
                 if(!isDrawing) return;
-                x = e.pageX - $(this).offset().left - borderWidth;
-                y = e.pageY - $(this).offset().top - borderWidth;
+                thisX = e.pageX || e.originalEvent.changedTouches[0].pageX;
+                thisY = e.pageY || e.originalEvent.changedTouches[0].pageY;
+                x = thisX - $(this).offset().left - borderWidth;
+                y = thisY - $(this).offset().top - borderWidth;
                 
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
@@ -55,14 +73,21 @@
                 ctx.stroke();
                 startX = x;
                 startY = y;
+                
+                e.preventDefault();
             })
-            .mouseup(function(){
+            .on('touchend mouseup', function(){
+                //console.log("touchend mouseup");
                 isDrawing = false;
             })
-            .mouseleave(function(e){
+            .on('touchleave mouseleave', function(e){
+                //console.log("touchleave mouseleave");
                 if(!isDrawing) return;
-                x = e.pageX - $(this).offset().left - borderWidth;
-                y = e.pageY - $(this).offset().top - borderWidth;
+                e.preventDefault();
+                thisX = e.pageX || e.originalEvent.changedTouches[0].pageX;
+                thisY = e.pageY || e.originalEvent.changedTouches[0].pageY;
+                x = thisX - $(this).offset().left - borderWidth;
+                y = thisY - $(this).offset().top - borderWidth;
                 
                 console.log("x:" + x);
                 console.log("y:" + y);
@@ -74,7 +99,7 @@
                 startX = x;
                 startY = y;
                 
-                isDrawing = false;  
+                isDrawing = false;
             });
             
             $('#penColor').change(function(){
@@ -99,13 +124,17 @@
                         acceptImage: canvas
                     },
                     success:function(data, dataType){
-                        console.log("succcess");
-                        console.log(data);        
+                        //console.log("succcess");
+                        //console.log(data);
+                        var $img = $('img');
+                        var imgSrc = $img.attr('src');
+                        $img.attr('src', "");
+                        $img.attr('src', imgSrc);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown){
-                        console.log("error");
-                        console.log(XMLHttpRequest);
-                        console.log(textStatus);
+                        //console.log("error");
+                        //console.log(XMLHttpRequest);
+                        //console.log(textStatus);
                     }
                     
                 });
