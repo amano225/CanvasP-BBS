@@ -139,7 +139,7 @@
                     .trigger('input');
                 $('.color')[0].color.fromString($(this).val(), false);
             });
-            $('.color').on('keyup input', function(){
+            $('.color').on('keyup input change', function(){
                 ctx.strokeStyle = "#" + $(this).val();
                 onChangePenSample();
             });
