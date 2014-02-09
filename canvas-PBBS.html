@@ -4,50 +4,84 @@
     <meta charset="utf-8">
     <title>canvasを使ったお絵描き投稿システム</title>
     <style>
+        #main{
+            overflow:hidden;
+        }
         #mycanvas{
             border: 10px solid #999;
             cursor:crosshair;
         }
+        #canvasTool{
+            float:left;
+        }
+        #penWidth{
+            width:50px;
+        }
     </style>
 </head>
 <body>
-    <p>
-        <select id="penColor">
-            <option value="black">黒</option>
-            <option value="red">赤</option>
-            <option value="blue">青</option>
-            <option value="rgb(100%,100%,100%)">白</option>
-        </select>
-        <select id="penWidth">
-            <option value="1">細</option>
-            <option value="3">中</option>
-            <option value="5">太</option>
-        </select>
-        <input type="button" id="erase" value="消去">
-        <input type="button" id="posting" value="投稿">
-    </p>
-    <canvas width="400" height="200" id="mycanvas">
-        Canvasに対応したブラウザを用意してください。
-    </canvas>
+    <div id="main">
+        <div id="canvasTool">
+            <input class="color" value="000000">
+            <select id="penColor">
+                <option value="000000">黒色</option>
+                <option value="FF0000">赤色</option>
+                <option value="FFFF00">黄色</option>
+                <option value="00FF00">緑色</option>
+                <option value="0000FF">青色</option>
+                <option value="FFFFFF">白色</option>
+            </select>
+            <br>
+            <label>ペンの太さ：</label>
+            <input type="number" value="1" id="penWidth" min="1" max="25">
+            <br>
+            <canvas id="penSample" width="100" height="100"></canvas>
+            <br>
+            <input type="button" id="erase" value="消去">
+            <input type="button" id="posting" value="投稿">
+            <input type="button" id="imaging" value="画像化">
+        </div>
+        <canvas width="400" height="200" id="mycanvas">
+            Canvasに対応したブラウザを用意してください。
+        </canvas>
+    </div>
     <div>
         <p>最近投稿された画像</p>
         <img src="test.png" alt="">
     </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="jscolor/jscolor.js"></script>
     <script>
         $(function(){
             var canvas = document.getElementById('mycanvas');
             if( !canvas || !canvas.getContext) return false;
             var ctx = canvas.getContext('2d');
             
+            
             var startX, startY, x, y;
             var thisX, thisY;
             var borderWidth = 10;
             var isDrawing = false;
+            ctx.lineCap = "round";
+            
+            var penSampleCtx = document.getElementById('penSample').getContext('2d');
+            var onChangePenSample = function(){
+                penSampleCtx.clearRect(0,0,document.getElementById('penSample').width, document.getElementById('penSample').height);
+                penSampleCtx.lineCap = "round";
+                penSampleCtx.strokeStyle = "#" + $('.color').val();
+                penSampleCtx.lineWidth = $('#penWidth').val();
+                penSampleCtx.beginPath();
+                penSampleCtx.moveTo(25, 25);
+                penSampleCtx.lineTo(50, 50);
+                penSampleCtx.stroke();
+            };
+            onChangePenSample();
+
             $('#mycanvas').on('touchstart mousedown', function(e){
                 //console.log(e);
                 //console.log(e.preventDefault);
                 //console.log("touchstart mousedown");
+                e.preventDefault();
                 thisX = e.pageX || e.originalEvent.changedTouches[0].pageX;
                 thisY = e.pageY || e.originalEvent.changedTouches[0].pageY;
                 //console.log("thisX:" + thisX + ",thisY:" + thisY);
@@ -57,11 +91,10 @@
                 isDrawing = true;
                 
                 //console.log("X:" + startX + ",Y:" + startY);
-                
-                e.preventDefault();
             })
             .on('touchmove mousemove',function(e){
                 if(!isDrawing) return;
+                e.preventDefault();
                 thisX = e.pageX || e.originalEvent.changedTouches[0].pageX;
                 thisY = e.pageY || e.originalEvent.changedTouches[0].pageY;
                 x = thisX - $(this).offset().left - borderWidth;
@@ -74,7 +107,6 @@
                 startX = x;
                 startY = y;
                 
-                e.preventDefault();
             })
             .on('touchend mouseup', function(){
                 //console.log("touchend mouseup");
@@ -103,11 +135,18 @@
             });
             
             $('#penColor').change(function(){
-                ctx.strokeStyle = $(this).val();
+                $('.color').val($(this).val())
+                    .trigger('input');
+                $('.color')[0].color.fromString($(this).val(), false);
+            });
+            $('.color').on('keyup input', function(){
+                ctx.strokeStyle = "#" + $(this).val();
+                onChangePenSample();
             });
             
-            $('#penWidth').change(function(){
+            $('#penWidth').on('change input', function(){
                 ctx.lineWidth = $(this).val();
+                onChangePenSample();
             });
             
             $('#erase').click(function(){
@@ -138,6 +177,10 @@
                     }
                     
                 });
+            });
+            
+            $('#imaging').click(function(){
+                window.open($('#mycanvas')[0].toDataURL());
             });
         });
     </script>
